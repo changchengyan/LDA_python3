@@ -47,7 +47,7 @@ def mergeCsv():
     if(len(fileNames)>0):
         combined_df = pd.concat(
             [
-                pd.read_csv(csv_file, usecols=[columName])
+                pd.read_csv(csv_file, usecols=[columName],header=0,index_col=False,verbose=True)
                 for csv_file in glob(dirPath+'/csv/*.csv')
             ]
         )
