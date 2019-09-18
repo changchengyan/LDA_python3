@@ -16,7 +16,7 @@ dirPath = os.path.dirname(os.path.abspath(__file__))
 ## 当根目录的 生成的csv文件
 csvName = 'comments'
 
-## 匹配的词云 TXT 文件
+## 匹配的过滤词是 TXT 文件 必须是 UTF-8 格式
 wordCloud = 'LDA'
 
 # 训练模型
@@ -39,9 +39,9 @@ def load_stopword():
     if not flag:
         return
 
-    f_stop = open(dirPath+'/'+wordCloud+'.txt')
-    sw = [line.strip() for line in f_stop]
-    f_stop.close()
+    with open(dirPath+'/'+wordCloud+'.txt',encoding='utf-8',mode='r') as f_stop:
+        # f_stop = open(dirPath+'/'+wordCloud+'.txt')
+        sw = [line.strip() for line in f_stop]
     return sw
 
 def validFilePath(name,unit='csv'):
@@ -52,7 +52,7 @@ def validFilePath(name,unit='csv'):
 
 
 
-def exec(t_start,stop_words):
+def exec(stop_words):
 
 
     if not validFilePath(csvName):
@@ -131,8 +131,12 @@ def exec(t_start,stop_words):
     num_show_topic = 10  # 每个文档显示前几个主题
     print('7.结果：10个文档的主题分布：--')
     doc_topics = lda.get_document_topics(corpus_tfidf)  # 所有文档的主题分布
+
+    # 生成词组的 索引
     idx = np.arange(M)
+    # 打乱词组的索引
     np.random.shuffle(idx)
+    # 取前十个词组来计算
     idx = idx[:10]
     for i in idx:
         topic = np.array(doc_topics[i])
@@ -167,7 +171,9 @@ if __name__ == '__main__':
     stop_words = load_stopword()
     print('读入规避词数据完成，用时%.3f秒' % (time.time() - t_start))
 
-    exec(t_start,stop_words)
+    print(stop_words)
+
+    exec(stop_words)
 
 
 
