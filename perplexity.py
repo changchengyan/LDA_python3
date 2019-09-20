@@ -8,8 +8,6 @@ import time
 from gensim import corpora, models
 import matplotlib.pyplot as plt
 
-import numpy as np
-
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s : ', level=logging.INFO)
 
 ## 获取当前根目录路径
@@ -104,17 +102,16 @@ if __name__ == '__main__':
         corpus = corpora.MmCorpus(corpus_path)
         lda_multi = models.ldamodel.LdaModel.load(ldamodel_path)
         # 主题数
-        num_topics = 30
+        num_topics = 10
         # 测试集
         testset = []
         # 样本数量率
-        sampleNum = 1
+        sampleNum = 300
         # sample 1/300
         # 当前测试 样本集 过少 就 算作1
 
         for i in range ( int(corpus.num_docs/sampleNum)):
             testset.append(corpus[i*sampleNum])
-        print('*'*20)
         prep = perplexity(lda_multi, testset, dictionary, len(dictionary.keys()), num_topics)
     else:
         print('您的模型库还未生成!')

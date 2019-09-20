@@ -20,9 +20,9 @@ csvName = 'comments'
 wordCloud = 'LDA'
 
 # 训练模型
-num_topics = 30
+num_topics = 10
 # 全部语料训练的次数 数值越大 越耗时
-passes = 2
+passes = 10
 #  大体理解是 控制运算速度
 interations = 6000
 # 进程数
@@ -70,8 +70,24 @@ def exec(stop_words):
     values= pd.read_csv(dirPath+'/'+csvName+'.csv', usecols=[csvName])
     ## 转换成 数组
     list = np.array(values)
-    texts = [[word for word in str(item).strip().lower().split() if word not in stop_words] for item in list]
 
+    # print(list)
+    # print(len(list))
+
+    # 去除空的数组
+    filter_list = []
+    for item in list:
+        if(len(item)==1 and pd.isnull(item)):
+            continue
+        else:
+            filter_list.append(item.tolist())
+
+
+    # if word not in stop_words
+    texts = [[word for word in item[0].strip().lower().split() if word not in stop_words] for item in filter_list]
+
+    # for word in texts:
+    #     print(word)
     print('读入语料数据完成，用时%.3f秒' % (time.time() - t_start))
 
     M = len(texts)
@@ -104,6 +120,7 @@ def exec(stop_words):
     corpora.MmCorpus.serialize(dirPath+'/latitude/corpus.mm',corpus)
     print('mm文件创建完成，用时%.3f秒' % (time.time() - t_start))
 
+    print('')
     print('5.正在计算文档TF-IDF ------')
     t_start = time.time()
     # 计算tf-idf值
@@ -122,23 +139,28 @@ def exec(stop_words):
     print('6.LDA模型拟合推断 ------')
 
     t_start = time.time()
-    lda = models.LdaModel(corpus_tfidf, num_topics=num_topics, id2word=dictionary,
-                          alpha=0.01, eta=0.01, minimum_probability=0.001,
-                          update_every=1, chunksize=100, passes=1)
+
+    # ,
+    # alpha = 0.01, eta = 0.01, minimum_probability = 0.001,
+    # update_every = 1, chunksize = 100, passes = 1
+
+    lda = models.LdaModel(corpus_tfidf, num_topics=num_topics, id2word=dictionary)
     print('LDA模型完成，训练时间为\t%.3f秒' % (time.time() - t_start))
 
+    print('')
+    print('7.结果：10个文档的主题分布：--')
     # 随机打印某10个文档的主题
     num_show_topic = 10  # 每个文档显示前几个主题
-    print('7.结果：10个文档的主题分布：--')
     doc_topics = lda.get_document_topics(corpus_tfidf)  # 所有文档的主题分布
 
     # 生成词组的 索引
     idx = np.arange(M)
     # 打乱词组的索引
     np.random.shuffle(idx)
-    # 取前十个词组来计算
+    # 取随机的索引的十个 词组 来计算
     idx = idx[:10]
     for i in idx:
+        # 用来获取 随机的 主题 10个
         topic = np.array(doc_topics[i])
         topic_distribute = np.array(topic[:, 1])
         # print topic_distribute
@@ -147,6 +169,8 @@ def exec(stop_words):
         print(topic_distribute[topic_idx])
 
     num_show_term = 7  # 每个主题显示几个词
+    print('')
+    print('当前文档有%d个主题'%num_topics)
     print('8.结果：每个主题的词分布：--')
     for topic_id in range(num_topics):
         print('主题#%d：\t' % topic_id)
